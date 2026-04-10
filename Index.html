@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <base target="_top">
+    <meta charset="UTF-8">
+    <title>App Review - Porter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&family=Lexend:wght@300;400;500;600;700&family=Nunito:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&family=Rubik:wght@300;400;500;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=Work+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = { darkMode:'class', theme:{ extend:{ colors:{ brand:{50:'#eef2ff',100:'#e0e7ff',200:'#c7d2fe',500:'#6366f1',600:'#4f46e5',700:'#4338ca',900:'#312e81'}, surface:{50:'#f8fafc',100:'#f1f5f9',200:'#e2e8f0',800:'#1e293b',900:'#0f172a',950:'#020617'} } } } }
+    </script>
+    <style>
+        :root{--font-main:'DM Sans',sans-serif;--font-size:14px;}
+        *{box-sizing:border-box;}
+        body{font-family:var(--font-main);font-size:var(--font-size);}
+        .custom-scroll::-webkit-scrollbar{width:4px;height:4px;}
+        .custom-scroll::-webkit-scrollbar-track{background:transparent;}
+        .custom-scroll::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:4px;}
+        .dark .custom-scroll::-webkit-scrollbar-thumb{background:#475569;}
+        .select-modern{-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .5rem center;background-size:1em 1em;padding-right:2rem;}
+        [v-cloak]{display:none;}
+        .spinner{border:3px solid rgba(99,102,241,.2);border-radius:50%;border-top:3px solid #6366f1;width:44px;height:44px;animation:spin .7s linear infinite;}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+        @keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes scaleIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+        .anim-fade{animation:fadeIn .3s ease-out}
+        .anim-slide{animation:slideUp .35s ease-out}
+        .anim-scale{animation:scaleIn .25s ease-out}
+        .multi-tag{display:inline-flex;align-items:center;gap:2px;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:600;background:#e0e7ff;color:#4338ca;}
+        .dark .multi-tag{background:#312e81;color:#c7d2fe;}
+        .excluded-row{opacity:.35;text-decoration:line-through;}
+        .login-bg{background:linear-gradient(135deg,#667eea 0%,#764ba2 50%,#6366f1 100%);}
+        .glass{background:rgba(255,255,255,.08);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.15);}
+        .tbl-header{background:linear-gradient(135deg,#f8fafc,#f1f5f9);border-bottom:2px solid #e2e8f0;}
+        .dark .tbl-header{background:linear-gradient(135deg,#0f172a,#1e293b);border-bottom:2px solid #334155;}
+    </style>
+</head>
+<body class="bg-surface-50 text-slate-800 dark:bg-surface-950 dark:text-slate-100 transition-colors duration-300 h-screen flex flex-col overflow-hidden">
+<div id="loader" class="fixed inset-0 bg-white dark:bg-surface-950 z-[200] flex flex-col items-center justify-center transition-opacity duration-500"><div class="spinner mb-4"></div><div class="text-slate-400 font-medium text-sm">Loading App Review...</div></div>
+
+<div id="app" v-cloak class="flex flex-col h-full">
+
+<!-- LOGIN -->
+<div v-if="appState==='login'" class="fixed inset-0 z-[190] flex items-center justify-center login-bg">
+    <div class="absolute inset-0 overflow-hidden pointer-events-none"><div class="absolute -top-32 -right-32 w-96 h-96 bg-white/5 rounded-full blur-3xl"></div></div>
+    <div class="flex w-full max-w-4xl mx-4 rounded-3xl overflow-hidden shadow-2xl anim-scale" style="min-height:480px">
+        <div class="w-full md:w-1/2 bg-white p-10 flex flex-col justify-center">
+            <div class="mb-8"><h1 class="text-3xl font-bold text-slate-900 mb-1">App <span class="text-brand-600">Review</span></h1><p class="text-slate-500 text-sm">Sign in to access the dashboard</p></div>
+            <div v-if="loginError" class="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-xs font-medium anim-fade">{{ loginError }}</div>
+            <button @click="doLogin" :disabled="loginLoading" class="w-full flex items-center justify-center gap-3 bg-slate-900 hover:bg-slate-800 text-white py-3.5 rounded-xl font-bold text-sm transition-all active:scale-[.98] disabled:opacity-60 shadow-lg">
+                <svg v-if="!loginLoading" width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                <span v-if="loginLoading" class="spinner" style="width:20px;height:20px;border-width:2px"></span>
+                <span>{{ loginLoading?'Signing in...':'Continue with Google Account' }}</span>
+            </button>
+            <p class="text-[11px] text-slate-400 mt-4 text-center">Allowed domain: <span class="font-bold text-slate-600">@theporter.in</span></p>
+            <div class="mt-10 text-xs text-slate-400">Developed by <a href="#" class="font-bold text-brand-600 hover:underline">John Messiah</a></div>
+        </div>
+        <div class="hidden md:flex w-1/2 flex-col justify-center items-center p-10 text-white relative" style="background:linear-gradient(135deg,#4f46e5,#7c3aed)">
+            <div class="relative z-10 text-center"><h2 class="text-3xl font-bold mb-3">Welcome back!</h2><p class="text-white/80 text-sm mb-8 max-w-xs mx-auto leading-relaxed">Analyze customer reviews, track trends, and drive product improvements.</p>
+                <div class="flex gap-3 justify-center"><div class="glass rounded-xl px-4 py-3 text-center"><div class="text-2xl font-bold">4.3</div><div class="text-[10px] text-white/60 uppercase tracking-widest">Rating</div></div><div class="glass rounded-xl px-4 py-3 text-center"><div class="text-2xl font-bold">6.7K+</div><div class="text-[10px] text-white/60 uppercase tracking-widest">Reviews</div></div></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- LOADING -->
+<div v-if="appState==='loading'" class="fixed inset-0 z-[180] bg-white dark:bg-surface-950 flex flex-col items-center justify-center"><div class="spinner mb-4"></div><div class="text-slate-400 font-medium text-sm">Loading App Review Web App...</div></div>
+
+<!-- ===== MAIN APP ===== -->
+<template v-if="appState==='ready'">
+
+<!-- WALKTHROUGH -->
+<div v-if="walk.isActive" class="fixed inset-0 z-[160] bg-black/60 backdrop-blur-sm flex items-center justify-center" @click.self="endWalkthrough">
+    <div class="bg-white dark:bg-surface-800 p-8 rounded-2xl shadow-2xl max-w-md w-full mx-4 border anim-scale" style="z-index:161">
+        <p class="text-xs font-bold text-amber-500 uppercase tracking-widest mb-1">Step {{walk.step+1}} of {{walk.steps.length}}</p>
+        <h3 class="text-xl font-bold mb-3 dark:text-white">{{walk.steps[walk.step].title}}</h3>
+        <p class="text-sm text-slate-600 dark:text-slate-300 mb-8 leading-relaxed">{{walk.steps[walk.step].desc}}</p>
+        <div class="flex justify-between items-center"><button @click="endWalkthrough" class="text-xs font-bold text-slate-400 hover:text-slate-600">Skip</button><div class="flex gap-2"><button v-if="walk.step>0" @click="walk.step--" class="px-4 py-2 rounded-lg bg-slate-100 text-sm font-bold">Back</button><button v-if="walk.step<walk.steps.length-1" @click="walk.step++" class="px-5 py-2 rounded-lg bg-brand-600 text-white text-sm font-bold shadow-md">Next</button><button v-else @click="endWalkthrough" class="px-5 py-2 rounded-lg bg-emerald-500 text-white text-sm font-bold shadow-md">Done!</button></div></div>
+    </div>
+</div>
+
+<!-- PRESET MODAL -->
+<div v-if="presetModal.show" class="fixed inset-0 z-[130] flex items-center justify-center bg-black/50 backdrop-blur-sm" @click.self="presetModal.show=false">
+    <div class="bg-white dark:bg-surface-800 p-6 rounded-2xl shadow-xl w-full max-w-sm mx-4 border anim-scale">
+        <h3 class="text-lg font-bold mb-4 dark:text-white">{{presetModal.isEdit?'Edit Preset':'Create New Preset'}}</h3>
+        <div class="space-y-4 mb-6">
+            <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Name</label><input v-model="presetModal.name" placeholder="e.g., My Filter" class="w-full border p-2.5 rounded-xl text-sm dark:bg-surface-900 dark:border-slate-700 dark:text-white outline-none focus:ring-2 ring-brand-500"></div>
+            <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Visibility</label><select v-model="presetModal.visibility" class="select-modern w-full border p-2.5 rounded-xl text-sm dark:bg-surface-900 dark:border-slate-700 outline-none"><option value="Private">Private</option><option value="Public">Public</option></select></div>
+            <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Notes</label><textarea v-model="presetModal.notes" rows="2" class="w-full border p-2.5 rounded-xl text-sm dark:bg-surface-900 dark:border-slate-700 outline-none resize-none"></textarea></div>
+        </div>
+        <div class="flex justify-end gap-3"><button @click="presetModal.show=false" class="px-4 py-2 rounded-lg bg-slate-100 font-bold text-sm">Cancel</button><button @click="executeSavePreset" :disabled="!presetModal.name" class="px-4 py-2 rounded-lg bg-brand-600 text-white font-bold text-sm disabled:opacity-50">Save</button></div>
+    </div>
+</div>
+
+<!-- PRESET POPUP -->
+<div v-if="presetPopup.show&&presetPopup.data" class="fixed z-[120] bg-white dark:bg-surface-800 shadow-2xl rounded-xl border p-5 w-80 anim-scale" :style="{top:presetPopup.y+'px',left:presetPopup.x+'px'}">
+    <div class="flex justify-between items-start mb-2 border-b pb-2"><div><h4 class="font-bold dark:text-white">{{presetPopup.data.name}}</h4><p class="text-[10px] text-slate-400 uppercase mt-0.5">By {{presetPopup.data.creator.split('@')[0]}}</p></div><span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase" :class="presetPopup.data.visibility==='Public'?'bg-emerald-50 text-emerald-600':'bg-amber-50 text-amber-600'">{{presetPopup.data.visibility}}</span></div>
+    <p class="text-xs text-slate-500 mb-4 italic">{{presetPopup.data.notes||'No notes.'}}</p>
+    <div class="flex gap-2"><button v-if="presetPopup.data.creator===user.email" @click="editPreset(presetPopup.data)" class="flex-1 py-1.5 bg-slate-100 hover:bg-slate-200 rounded text-xs font-bold transition">Edit</button><button v-if="presetPopup.data.creator===user.email" @click="delPreset(presetPopup.data)" class="flex-1 py-1.5 bg-red-50 hover:bg-red-100 rounded text-xs font-bold text-red-600 transition">Delete</button><button @click="presetPopup.show=false" class="py-1.5 px-3 border rounded text-xs material-icons-round text-sm text-slate-400">close</button></div>
+</div>
+
+<!-- REVIEW HOVER -->
+<div v-if="hoverPopup.show" class="fixed z-[120] bg-white dark:bg-surface-800 shadow-2xl rounded-xl border p-5 w-96 pointer-events-none anim-fade" :style="{top:hoverPopup.y+'px',left:hoverPopup.x+'px'}">
+    <div class="flex items-center gap-3 mb-3 border-b pb-3"><div :class="getRateColor(hoverPopup.data.rating)" class="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm">{{hoverPopup.data.rating}}</div><div><p class="text-xs font-bold uppercase">{{hoverPopup.data.source}} &bull; {{hoverPopup.data.month}}</p></div></div>
+    <p class="text-sm leading-relaxed mb-3">"{{hoverPopup.data.text}}"</p>
+    <div class="bg-slate-50 dark:bg-surface-900 rounded-lg p-3 text-xs space-y-1 border"><div class="font-bold">{{hoverPopup.data.l1}}</div><div class="text-brand-500" v-if="hoverPopup.data.l2">&raquo; {{hoverPopup.data.l2}}</div><div class="text-slate-500 pl-3" v-if="hoverPopup.data.l3">&raquo; {{hoverPopup.data.l3}}</div></div>
+</div>
+
+<!-- CELL ACTION -->
+<div v-if="cellPopup.show" class="fixed z-[125] bg-white dark:bg-surface-800 shadow-xl rounded-xl border overflow-hidden anim-scale" :style="{top:cellPopup.y+'px',left:cellPopup.x+'px'}">
+    <button @click="cellPopupSelect" class="w-full px-5 py-2.5 text-left text-sm font-bold hover:bg-brand-50 flex items-center gap-2 transition"><span class="material-icons-round text-brand-500 text-base">filter_alt</span>Select</button>
+    <button @click="cellPopupViewReview" class="w-full px-5 py-2.5 text-left text-sm font-bold hover:bg-brand-50 flex items-center gap-2 border-t transition"><span class="material-icons-round text-emerald-500 text-base">visibility</span>View Reviews</button>
+    <button @click="cellPopup.show=false" class="w-full px-5 py-2 text-left text-[10px] font-bold text-slate-400 hover:bg-slate-50 border-t transition">Cancel</button>
+</div>
+
+<!-- REVIEW MODAL -->
+<div v-if="reviewModal.show" class="fixed inset-0 z-[135] flex items-center justify-center bg-black/50 backdrop-blur-sm" @click.self="reviewModal.show=false">
+    <div class="bg-white dark:bg-surface-800 rounded-2xl shadow-2xl w-full max-w-5xl mx-4 max-h-[85vh] flex flex-col border anim-scale">
+        <div class="p-4 border-b flex justify-between items-center shrink-0"><div class="flex items-center gap-2 text-sm"><span class="font-bold">{{reviewModal.title}}</span><span class="px-2 py-0.5 rounded-full bg-brand-100 text-brand-700 font-bold text-xs">{{reviewModal.reviews.length}}</span></div><button @click="reviewModal.show=false" class="text-slate-400 hover:text-slate-600 material-icons-round">close</button></div>
+        <div class="flex-1 overflow-auto custom-scroll p-1"><table class="w-full text-left text-sm"><thead class="bg-slate-50 dark:bg-surface-900 sticky top-0 z-10 text-[10px] uppercase font-bold text-slate-500"><tr><th class="p-3 w-12">Rtg</th><th class="p-3">Review</th><th class="p-3 w-24">Month</th><th class="p-3 w-28">Type</th><th class="p-3 w-32">Meta</th><th class="p-3 w-24">Source</th></tr></thead>
+        <tbody class="divide-y"><tr v-for="r in reviewModal.reviews" class="hover:bg-slate-50 transition"><td class="p-3"><div :class="getRateColor(r.rating)" class="w-7 h-7 rounded-md flex items-center justify-center text-white font-bold text-xs">{{r.rating}}</div></td><td class="p-3 text-[13px] leading-relaxed">{{r.text}}</td><td class="p-3 text-xs text-slate-500">{{r.month}}</td><td class="p-3"><span class="px-2 py-0.5 rounded border text-[9px] font-bold uppercase" :class="r.type.toUpperCase().includes('SPOT')?'bg-purple-50 text-purple-700 border-purple-200':'bg-blue-50 text-blue-700 border-blue-200'">{{r.type}}</span></td><td class="p-3 text-xs text-slate-500 space-y-0.5"><div v-if="r.city" class="flex gap-1"><span class="material-icons-round text-[11px]">location_on</span>{{r.city}}</div><div v-if="r.vehicle" class="flex gap-1"><span class="material-icons-round text-[11px]">directions_car</span>{{r.vehicle}}</div><div v-if="r.comp" class="flex gap-1 text-rose-500 font-bold"><span class="material-icons-round text-[11px]">compare_arrows</span>{{r.comp}}</div></td><td class="p-3 text-right"><div class="font-bold text-xs">{{r.source}}</div><div class="text-[9px] text-slate-400 uppercase">{{r.country}}</div></td></tr></tbody></table></div>
+    </div>
+</div>
+
+<!-- TABLE FILTER MODAL -->
+<div v-if="tblFilter.show" class="fixed z-[125] bg-white dark:bg-surface-800 shadow-2xl rounded-xl border w-64 max-h-72 overflow-hidden anim-scale" :style="{top:tblFilter.y+'px',left:tblFilter.x+'px'}">
+    <div class="p-2 border-b"><input v-model="tblFilter.search" placeholder="Search..." class="w-full px-3 py-1.5 text-xs rounded-lg bg-slate-50 dark:bg-surface-900 border outline-none focus:ring-1 ring-brand-500"></div>
+    <div class="overflow-y-auto max-h-48 custom-scroll p-1"><label v-for="opt in tblFilterOpts" class="flex items-center gap-2 px-3 py-1.5 hover:bg-slate-50 rounded-lg cursor-pointer text-xs transition"><input type="checkbox" :checked="!tblFilter.excluded.includes(opt)" @change="toggleTblFilter(opt)" class="accent-brand-600 rounded"><span class="truncate">{{opt}}</span></label></div>
+    <div class="p-2 border-t flex gap-2"><button @click="tblFilter.excluded=[];tblFilter.show=false" class="flex-1 py-1 text-[10px] font-bold text-slate-500">Reset</button><button @click="tblFilter.show=false" class="flex-1 py-1 bg-brand-600 text-white rounded-lg text-[10px] font-bold">Done</button></div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div v-if="modal.show" class="fixed inset-0 z-[140] flex items-center justify-center bg-black/40 backdrop-blur-sm" @click.self="modal.show=false"><div class="bg-white dark:bg-surface-800 p-6 rounded-2xl shadow-xl max-w-sm w-full mx-4 border anim-scale"><h3 class="text-lg font-bold mb-2 dark:text-white">{{modal.title}}</h3><p class="text-sm text-slate-500 mb-6">{{modal.message}}</p><div class="flex justify-end gap-3"><button @click="modal.show=false" class="px-4 py-2 rounded-lg bg-slate-100 font-bold text-sm">Cancel</button><button @click="executeModal" class="px-4 py-2 rounded-lg bg-brand-600 text-white font-bold text-sm">Confirm</button></div></div></div>
+
+<!-- MULTI-SELECT DROPDOWN -->
+<div v-if="multiSelect.show" class="fixed z-[115] bg-white dark:bg-surface-800 shadow-2xl rounded-xl border w-64 max-h-72 overflow-hidden anim-scale" :style="{top:multiSelect.y+'px',left:multiSelect.x+'px'}">
+    <div class="p-2 border-b"><input v-model="multiSelect.search" placeholder="Search..." class="w-full px-3 py-1.5 text-xs rounded-lg bg-slate-50 dark:bg-surface-900 border outline-none focus:ring-1 ring-brand-500"></div>
+    <div class="overflow-y-auto max-h-48 custom-scroll p-1"><label v-for="opt in msFilteredOpts" class="flex items-center gap-2 px-3 py-1.5 hover:bg-slate-50 rounded-lg cursor-pointer text-xs transition"><input type="checkbox" :checked="multiSelect.selected.includes(opt)" @change="toggleMS(opt)" class="accent-brand-600 rounded"><span class="truncate">{{opt}}</span></label></div>
+    <div class="p-2 border-t flex gap-2"><button @click="multiSelect.selected=[]" class="flex-1 py-1 text-[10px] font-bold text-slate-500">Clear</button><button @click="applyMS" class="flex-1 py-1 bg-brand-600 text-white rounded-lg text-[10px] font-bold">Apply</button></div>
+</div>
+
+<!-- HEADER -->
+<header class="h-14 bg-white/95 dark:bg-surface-900/95 backdrop-blur-lg border-b border-slate-200/80 dark:border-slate-700/80 flex items-center px-4 shrink-0 z-40">
+    <div class="flex items-center gap-3 shrink-0">
+        <button v-if="currentPage==='Result'" @click="showSidebar=!showSidebar" class="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-surface-800 text-slate-500 transition"><span class="material-icons-round text-xl">menu</span></button>
+        <div class="flex items-baseline gap-2 select-none"><h1 class="text-xl font-bold tracking-tight dark:text-white">App <span class="text-brand-600 font-medium">Review</span></h1><div class="text-[10px] text-slate-400 hidden xl:block">by <a href="#" class="font-bold text-brand-600 hover:underline">John Messiah</a></div></div>
+    </div>
+    <div class="flex-1 flex justify-center">
+        <div class="flex bg-slate-100/80 dark:bg-surface-800/80 p-0.5 rounded-lg">
+            <button @click="currentPage='Result'" class="px-3 py-1.5 rounded-md text-xs font-bold transition-all" :class="currentPage==='Result'?'bg-white text-brand-600 shadow-sm dark:bg-surface-800 dark:text-white':'text-slate-500 hover:text-slate-700'">Result</button>
+            <button @click="currentPage='Guide'" class="px-3 py-1.5 rounded-md text-xs font-bold transition-all" :class="currentPage==='Guide'?'bg-white text-brand-600 shadow-sm dark:bg-surface-800 dark:text-white':'text-slate-500'">User Guide</button>
+            <button v-if="isAdminOrUpdater" @click="currentPage='Validation'" class="px-3 py-1.5 rounded-md text-xs font-bold transition-all" :class="currentPage==='Validation'?'bg-white text-brand-600 shadow-sm dark:bg-surface-800 dark:text-white':'text-slate-500'">Validation</button>
+            <button v-if="user.role==='Admin'" @click="currentPage='Access'" class="px-3 py-1.5 rounded-md text-xs font-bold transition-all" :class="currentPage==='Access'?'bg-white text-brand-600 shadow-sm dark:bg-surface-800 dark:text-white':'text-slate-500'">Access</button>
+            <button @click="currentPage='Log'" class="px-3 py-1.5 rounded-md text-xs font-bold transition-all" :class="currentPage==='Log'?'bg-white text-brand-600 shadow-sm dark:bg-surface-800 dark:text-white':'text-slate-500'">Log</button>
+            <button v-if="user.role==='Admin'" @click="currentPage='Users'" class="px-3 py-1.5 rounded-md text-xs font-bold transition-all" :class="currentPage==='Users'?'bg-white text-brand-600 shadow-sm dark:bg-surface-800 dark:text-white':'text-slate-500'">User Base</button>
+        </div>
+    </div>
+    <div class="flex items-center gap-2 shrink-0">
+        <button @click="refreshData" :disabled="loading" class="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-surface-800 text-slate-500 transition disabled:opacity-50" title="Refresh"><span class="material-icons-round text-lg" :class="{'animate-spin':loading}">refresh</span></button>
+        <div class="relative">
+            <button @click.stop="openProfile" class="flex items-center gap-2 pl-2 pr-1 py-1 rounded-xl hover:bg-slate-100 dark:hover:bg-surface-800 transition">
+                <div class="text-right hidden sm:block"><div class="text-[10px] font-bold leading-tight">{{user.name}}</div><div class="text-[9px] text-slate-400 uppercase tracking-wider">{{user.role}}</div></div>
+                <img v-if="user.photoUrl" :src="user.photoUrl" class="w-9 h-9 rounded-full object-cover border-2 border-brand-200" referrerpolicy="no-referrer">
+                <div v-else class="w-9 h-9 rounded-full bg-brand-100 flex items-center justify-center text-brand-600 font-bold text-sm">{{user.name?user.name.charAt(0):'?'}}</div>
+            </button>
+            <div v-if="profileMenu" class="absolute right-0 top-full mt-1 bg-white dark:bg-surface-800 border rounded-xl shadow-xl w-52 overflow-hidden z-50 anim-scale">
+                <div class="p-3 border-b"><div class="font-bold text-sm dark:text-white">{{user.name}}</div><div class="text-[10px] text-slate-400 truncate">{{user.email}}</div></div>
+                <button @click="currentPage='Preference';closeProfile()" class="w-full px-3 py-2.5 text-left text-xs font-bold hover:bg-slate-50 dark:hover:bg-surface-900 flex items-center gap-2 transition"><span class="material-icons-round text-sm">settings</span>Preferences</button>
+                <button @click="toggleThemeTemp" class="w-full px-3 py-2.5 text-left text-xs font-bold hover:bg-slate-50 dark:hover:bg-surface-900 flex items-center gap-2 transition"><span class="material-icons-round text-sm">{{isDark?'light_mode':'dark_mode'}}</span>{{isDark?'Light Mode':'Dark Mode'}}</button>
+                <div class="px-3 py-2 border-t"><label class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Zoom Level</label><div class="flex items-center gap-2 mt-1"><button @click="changeZoom(-0.05)" class="w-6 h-6 rounded bg-slate-100 dark:bg-surface-900 text-xs font-bold flex items-center justify-center">-</button><span class="text-xs font-bold w-10 text-center">{{Math.round(zoomLevel*100)}}%</span><button @click="changeZoom(0.05)" class="w-6 h-6 rounded bg-slate-100 dark:bg-surface-900 text-xs font-bold flex items-center justify-center">+</button></div></div>
+                <button @click="doLogout" class="w-full px-3 py-2.5 text-left text-xs font-bold text-red-500 hover:bg-red-50 flex items-center gap-2 border-t transition"><span class="material-icons-round text-sm">logout</span>Sign Out</button>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- BODY -->
+<div class="flex flex-1 overflow-hidden relative" @click="globalClick($event)">
+
+<!-- SIDEBAR -->
+<aside v-if="showSidebar&&currentPage==='Result'" class="w-60 bg-white dark:bg-surface-900 flex flex-col shrink-0 z-30 h-full border-r border-slate-200 dark:border-slate-700" :class="preferences.filterPosition==='Right'?'order-last border-l border-r-0':''">
+    <div class="p-3 border-b flex justify-between items-center"><span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Filter Data</span><button @click="resetFilters" class="text-[10px] font-bold text-brand-600">RESET ALL</button></div>
+    <div class="flex-1 overflow-y-auto p-3 space-y-3 custom-scroll">
+        <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Month Range</label><div class="grid grid-cols-2 gap-1.5"><select v-model="filters.startMonth" class="select-modern w-full bg-slate-50 dark:bg-surface-950 border rounded-lg py-1.5 pl-2 text-xs outline-none"><option value="">Start</option><option v-for="m in sortedMonths" :value="m">{{m}}</option></select><select v-model="filters.endMonth" class="select-modern w-full bg-slate-50 dark:bg-surface-950 border rounded-lg py-1.5 pl-2 text-xs outline-none"><option value="">End</option><option v-for="m in sortedMonths" :value="m">{{m}}</option></select></div></div>
+        <div class="pt-2 border-t">
+            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Perspective</label>
+            <select v-model="filters.viewType" class="select-modern w-full bg-white dark:bg-surface-950 border border-brand-200 rounded-lg py-1.5 pl-2 text-xs font-bold text-brand-700 dark:text-white outline-none shadow-sm"><option value="Normal">Reviews</option><option value="Detail">Detail Analysis</option><option value="CompMonth">Monthly Trends</option><option value="CustomTrend">Custom Monthly Trends</option></select>
+            <div v-if="filters.viewType==='CustomTrend'" class="mt-2"><label class="block text-[10px] font-bold text-brand-500 uppercase mb-1">Trend Metric</label><select v-model="filters.trendMetric" class="select-modern w-full bg-brand-50 dark:bg-brand-900/20 border border-brand-200 rounded-lg py-1.5 pl-2 text-xs font-bold text-brand-800 outline-none"><option v-for="opt in trendMetricOptions" :value="opt.value">{{opt.label}}</option></select></div>
+        </div>
+        <!-- Basic Filters -->
+        <div class="space-y-3 pt-2 border-t">
+            <div v-for="k in basicFilterKeys" :key="k"><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">{{formatLabel(k)}}</label><div @click.stop="openMS(k,$event)" class="w-full min-h-[30px] bg-slate-50 dark:bg-surface-950 border rounded-lg px-2 py-1 flex flex-wrap gap-1 items-center cursor-pointer hover:border-brand-400 transition text-xs"><span v-if="!filters[k]||filters[k].length===0" class="text-slate-400">All</span><span v-else v-for="v in filters[k]" class="multi-tag">{{v}} <span @click.stop="removeFilterVal(k,v)" class="cursor-pointer hover:text-red-500">&times;</span></span></div></div>
+        </div>
+        <!-- Advance Filters (Collapse) -->
+        <div class="pt-2 border-t">
+            <button @click="advFilterOpen=!advFilterOpen" class="w-full flex items-center justify-between text-[10px] font-bold text-slate-500 uppercase tracking-widest py-1 hover:text-brand-600 transition">
+                <span>Advance Filters</span><span class="material-icons-round text-sm transition-transform" :class="advFilterOpen?'rotate-180':''">expand_more</span>
+            </button>
+            <div v-if="advFilterOpen" class="space-y-3 mt-2 anim-fade">
+                <div v-for="k in advFilterKeys" :key="k"><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">{{formatLabel(k)}}</label><div @click.stop="openMS(k,$event)" class="w-full min-h-[30px] bg-slate-50 dark:bg-surface-950 border rounded-lg px-2 py-1 flex flex-wrap gap-1 items-center cursor-pointer hover:border-brand-400 transition text-xs"><span v-if="!filters[k]||filters[k].length===0" class="text-slate-400">All</span><span v-else v-for="v in filters[k]" class="multi-tag">{{v}} <span @click.stop="removeFilterVal(k,v)" class="cursor-pointer hover:text-red-500">&times;</span></span></div></div>
+            </div>
+        </div>
+    </div>
+</aside>
+
+<main class="flex-1 bg-surface-100 dark:bg-surface-950 overflow-hidden relative">
+<div class="h-full overflow-y-auto p-4 lg:p-5 custom-scroll">
+<div v-if="globalError" class="mb-4 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm font-medium anim-fade">{{globalError}}</div>
+
+<!-- RESULT PAGE -->
+<div v-if="currentPage==='Result'" class="anim-fade">
+    <!-- STAT BOXES -->
+    <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-4">
+        <div class="bg-white dark:bg-surface-900 p-3 rounded-xl border"><p class="text-[9px] font-bold text-slate-500 uppercase mb-1">Avg Rating</p><div class="flex items-center gap-2"><span class="text-2xl font-bold dark:text-white">{{avgRating}}</span><div class="flex text-yellow-400 gap-0.5"><span v-for="i in 5" class="material-icons-round text-xs">{{i<=Math.round(avgRating)?'star':'star_border'}}</span></div></div><div class="w-full bg-slate-100 dark:bg-surface-800 h-1 rounded-full mt-1.5"><div class="bg-yellow-400 h-full rounded-full transition-all duration-700" :style="{width:(avgRating/5)*100+'%'}"></div></div></div>
+        <div class="bg-white dark:bg-surface-900 p-3 rounded-xl border flex items-center gap-3"><div class="flex-1 text-center border-r pr-3"><p class="text-[9px] font-bold text-slate-500 uppercase mb-0.5">Total</p><p class="text-xl font-bold">{{(stats.total||0).toLocaleString()}}</p></div><div class="flex-1 text-center"><p class="text-[9px] font-bold text-brand-500 uppercase mb-0.5">Filtered Review</p><p class="text-xl font-bold text-brand-600">{{filteredData.length.toLocaleString()}}</p></div></div>
+        <div class="bg-white dark:bg-surface-900 p-3 rounded-xl border"><p class="text-[9px] font-bold text-slate-500 uppercase mb-1.5">Review Status</p><div class="space-y-1"><div class="flex justify-between"><span class="text-[10px] font-bold text-red-500 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>Negative</span><span class="text-xs font-bold">{{statusCounts.negative}} <span class="text-slate-400 font-normal">({{statusCounts.negativePct}}%)</span></span></div><div class="flex justify-between"><span class="text-[10px] font-bold text-amber-500 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>Neutral</span><span class="text-xs font-bold">{{statusCounts.neutral}} <span class="text-slate-400 font-normal">({{statusCounts.neutralPct}}%)</span></span></div><div class="flex justify-between"><span class="text-[10px] font-bold text-emerald-500 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Positive</span><span class="text-xs font-bold">{{statusCounts.positive}} <span class="text-slate-400 font-normal">({{statusCounts.positivePct}}%)</span></span></div></div></div>
+        <div class="bg-white dark:bg-surface-900 p-3 rounded-xl border"><p class="text-[9px] font-bold text-slate-500 uppercase mb-1">Quick Summary</p><p class="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">Top issue: <span class="font-bold dark:text-white">{{topL1}}</span>. Most from <span class="font-bold dark:text-white">{{topSource}}</span>.</p></div>
+        <!-- Presets with save button -->
+        <div class="bg-white dark:bg-surface-900 p-3 rounded-xl border relative">
+            <p class="text-[9px] font-bold text-slate-500 uppercase mb-1">User Presets</p>
+            <div class="flex gap-1">
+                <div class="relative flex-1"><button @click.stop="presetDD=!presetDD" class="w-full bg-slate-50 dark:bg-surface-950 border rounded-lg p-1.5 flex justify-between items-center text-xs font-bold outline-none"><span class="truncate">{{activePresetName}}</span><span class="material-icons-round text-slate-400 text-base" :class="{'rotate-180':presetDD}">expand_more</span></button>
+                    <div v-if="presetDD" class="absolute top-full left-0 w-full mt-1 bg-white dark:bg-surface-800 border rounded-lg shadow-xl z-50 max-h-56 overflow-y-auto anim-scale"><ul class="text-xs"><li><button @click="loadPreset(null)" class="w-full text-left px-3 py-2 font-bold text-slate-500 hover:bg-slate-50 border-b flex items-center gap-2"><span class="material-icons-round text-sm">restart_alt</span>New View (Reset)</button></li><li v-for="p in presetList" :key="p.id" class="border-b border-slate-50"><button @click.stop="onPresetClick($event,p)" class="w-full text-left px-3 py-2 font-medium hover:bg-brand-50 transition truncate flex justify-between"><span>{{p.name}}</span><span class="material-icons-round text-[11px]" :class="p.visibility==='Public'?'text-emerald-500':'text-amber-500'">{{p.visibility==='Public'?'public':'lock'}}</span></button></li><li><button @click="openCreatePreset" class="w-full text-left px-3 py-2 font-bold text-brand-600 hover:bg-brand-50 flex items-center gap-2"><span class="material-icons-round text-sm">add_circle</span>Create</button></li></ul></div>
+                </div>
+                <button v-if="activePresetId&&filtersChanged" @click="quickSavePreset" class="px-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition flex items-center" title="Save current filters"><span class="material-icons-round text-sm">save</span></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3 TABLE VIEW (Detail / Monthly / Custom) -->
+    <div v-if="filters.viewType!=='Normal'" class="anim-fade">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-3" style="height:calc(100vh - 270px);min-height:400px">
+            <!-- L1 TABLE -->
+            <div class="bg-white dark:bg-surface-900 rounded-xl border flex flex-col overflow-hidden">
+                <div class="tbl-header p-3 flex flex-col gap-2">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2"><span class="text-xs font-bold text-slate-700 dark:text-white uppercase">L1 Category</span><span class="text-[10px] font-bold text-brand-600 bg-brand-50 dark:bg-brand-900/30 px-2 py-0.5 rounded">{{tblL1Filtered.length}}</span></div>
+                        <div class="flex items-center gap-1">
+                            <button @click.stop="openTblFilter('l1',$event)" class="p-1 rounded hover:bg-slate-200 dark:hover:bg-surface-800 transition" title="Filter"><span class="material-icons-round text-sm text-slate-500">filter_list</span></button>
+                            <button @click="copyTable('l1')" class="p-1 rounded hover:bg-slate-200 transition" title="Copy"><span class="material-icons-round text-sm text-slate-500">content_copy</span></button>
+                            <button @click="exportSheet('l1')" class="p-1 rounded hover:bg-slate-200 transition" title="Google Sheet"><span class="material-icons-round text-sm text-slate-500">grid_on</span></button>
+                        </div>
+                    </div>
+                    <div class="relative"><input v-model="search.l1" placeholder="Search L1..." class="w-full bg-white dark:bg-surface-950 border rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-1 ring-brand-500 pl-8"><span class="material-icons-round text-sm text-slate-400 absolute left-2 top-1.5">search</span></div>
+                </div>
+                <div class="flex-1 overflow-auto custom-scroll"><table class="w-full text-left text-xs"><thead class="sticky top-0 bg-slate-50 dark:bg-surface-950 z-10"><tr><th class="p-2 font-bold text-[10px] text-slate-500">Category</th>
+                    <template v-if="isMonthView"><th v-for="m in tblMonths" class="p-2 text-center font-bold text-[9px] text-slate-500 min-w-[70px]">{{m}}</th></template>
+                    <template v-else><th class="p-2 text-right font-bold text-[10px] w-16"><div class="text-slate-500">Count</div><div class="text-brand-600 font-mono">{{tblL1Sum}}</div></th><th class="p-2 text-right font-bold text-[10px] w-14"><div class="text-slate-500">%</div><div class="text-emerald-600 font-mono">100%</div></th></template>
+                </tr></thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                    <template v-if="isMonthView"><tr v-for="item in tblL1Searched" class="hover:bg-brand-50/50 cursor-pointer transition" :class="basicSelection.l1===item.name?'bg-brand-50':excludedL1.includes(item.name)?'excluded-row':''" @click.stop="onCellClick($event,'l1',item.name)"><td class="p-2 font-medium" :class="basicSelection.l1===item.name?'text-brand-600 font-bold':''">{{item.name}}</td><td v-for="m in tblMonths" class="p-2 text-center font-mono text-slate-600 dark:text-slate-400">{{item.months[m]||'-'}}</td></tr></template>
+                    <template v-else><tr v-for="item in tblL1Searched" class="hover:bg-brand-50/50 cursor-pointer transition" :class="basicSelection.l1===item.name?'bg-brand-50':excludedL1.includes(item.name)?'excluded-row':''" @click.stop="onCellClick($event,'l1',item.name)"><td class="p-2 font-medium" :class="basicSelection.l1===item.name?'text-brand-600 font-bold':''">{{item.name}}</td><td class="p-2 text-right font-mono font-bold">{{item.count}}</td><td class="p-2 text-right text-emerald-600 font-medium">{{tblPct(item.count,tblL1Sum)}}%</td></tr></template>
+                </tbody></table></div>
+            </div>
+            <!-- L2 TABLE -->
+            <div class="bg-white dark:bg-surface-900 rounded-xl border flex flex-col overflow-hidden">
+                <div class="tbl-header p-3 flex flex-col gap-2">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2"><span class="text-xs font-bold text-slate-700 dark:text-white uppercase">L2 Reason</span><span v-if="basicSelection.l1" class="text-[9px] text-brand-500 font-medium truncate max-w-[100px]">({{basicSelection.l1}})</span><span class="text-[10px] font-bold text-brand-600 bg-brand-50 px-2 py-0.5 rounded">{{tblL2Filtered.length}}</span></div>
+                        <div class="flex items-center gap-1"><button @click.stop="openTblFilter('l2',$event)" class="p-1 rounded hover:bg-slate-200 transition" title="Filter"><span class="material-icons-round text-sm text-slate-500">filter_list</span></button><button @click="copyTable('l2')" class="p-1 rounded hover:bg-slate-200 transition" title="Copy"><span class="material-icons-round text-sm text-slate-500">content_copy</span></button><button @click="exportSheet('l2')" class="p-1 rounded hover:bg-slate-200 transition" title="Sheet"><span class="material-icons-round text-sm text-slate-500">grid_on</span></button></div>
+                    </div>
+                    <div class="relative"><input v-model="search.l2" placeholder="Search L2..." class="w-full bg-white dark:bg-surface-950 border rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-1 ring-brand-500 pl-8"><span class="material-icons-round text-sm text-slate-400 absolute left-2 top-1.5">search</span></div>
+                </div>
+                <div class="flex-1 overflow-auto custom-scroll"><table class="w-full text-left text-xs"><thead class="sticky top-0 bg-slate-50 dark:bg-surface-950 z-10"><tr><th class="p-2 font-bold text-[10px]">Reason</th>
+                    <template v-if="isMonthView"><th v-for="m in tblMonths" class="p-2 text-center font-bold text-[9px] min-w-[70px]">{{m}}</th></template>
+                    <template v-else><th class="p-2 text-right font-bold text-[10px] w-16"><div class="text-slate-500">Count</div><div class="text-brand-600 font-mono">{{tblL2Sum}}</div></th><th class="p-2 text-right font-bold text-[10px] w-14"><div class="text-slate-500">%</div><div class="text-emerald-600 font-mono">100%</div></th></template>
+                </tr></thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                    <template v-if="isMonthView"><tr v-for="item in tblL2Searched" class="hover:bg-brand-50/50 cursor-pointer transition" :class="basicSelection.l2===item.name?'bg-brand-50':excludedL2.includes(item.name)?'excluded-row':''" @click.stop="onCellClick($event,'l2',item.name)"><td class="p-2 font-medium" :class="basicSelection.l2===item.name?'text-brand-600 font-bold':''">{{item.name}}</td><td v-for="m in tblMonths" class="p-2 text-center font-mono text-slate-600 dark:text-slate-400">{{item.months[m]||'-'}}</td></tr></template>
+                    <template v-else><tr v-for="item in tblL2Searched" class="hover:bg-brand-50/50 cursor-pointer transition" :class="basicSelection.l2===item.name?'bg-brand-50':excludedL2.includes(item.name)?'excluded-row':''" @click.stop="onCellClick($event,'l2',item.name)"><td class="p-2 font-medium" :class="basicSelection.l2===item.name?'text-brand-600 font-bold':''">{{item.name}}</td><td class="p-2 text-right font-mono font-bold">{{item.count}}</td><td class="p-2 text-right text-emerald-600 font-medium">{{tblPct(item.count,tblL2Sum)}}%</td></tr></template>
+                </tbody></table></div>
+            </div>
+            <!-- L3 TABLE -->
+            <div class="bg-white dark:bg-surface-900 rounded-xl border flex flex-col overflow-hidden">
+                <div class="tbl-header p-3 flex flex-col gap-2">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2"><span class="text-xs font-bold text-slate-700 dark:text-white uppercase">L3 Root Cause</span><span v-if="basicSelection.l2" class="text-[9px] text-brand-500 font-medium truncate max-w-[100px]">({{basicSelection.l2}})</span><span class="text-[10px] font-bold text-brand-600 bg-brand-50 px-2 py-0.5 rounded">{{tblL3Filtered.length}}</span></div>
+                        <div class="flex items-center gap-1"><button @click.stop="openTblFilter('l3',$event)" class="p-1 rounded hover:bg-slate-200 transition" title="Filter"><span class="material-icons-round text-sm text-slate-500">filter_list</span></button><button @click="copyTable('l3')" class="p-1 rounded hover:bg-slate-200 transition" title="Copy"><span class="material-icons-round text-sm text-slate-500">content_copy</span></button><button @click="exportSheet('l3')" class="p-1 rounded hover:bg-slate-200 transition" title="Sheet"><span class="material-icons-round text-sm text-slate-500">grid_on</span></button></div>
+                    </div>
+                    <div class="relative"><input v-model="search.l3" placeholder="Search L3..." class="w-full bg-white dark:bg-surface-950 border rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-1 ring-brand-500 pl-8"><span class="material-icons-round text-sm text-slate-400 absolute left-2 top-1.5">search</span></div>
+                </div>
+                <div class="flex-1 overflow-auto custom-scroll"><table class="w-full text-left text-xs"><thead class="sticky top-0 bg-slate-50 dark:bg-surface-950 z-10"><tr><th class="p-2 font-bold text-[10px]">Root Cause</th>
+                    <template v-if="isMonthView"><th v-for="m in tblMonths" class="p-2 text-center font-bold text-[9px] min-w-[70px]">{{m}}</th></template>
+                    <template v-else><th class="p-2 text-right font-bold text-[10px] w-16"><div class="text-slate-500">Count</div><div class="text-brand-600 font-mono">{{tblL3Sum}}</div></th><th class="p-2 text-right font-bold text-[10px] w-14"><div class="text-slate-500">%</div><div class="text-emerald-600 font-mono">100%</div></th></template>
+                </tr></thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                    <template v-if="isMonthView"><tr v-for="item in tblL3Searched" class="hover:bg-brand-50/50 cursor-pointer transition" :class="excludedL3.includes(item.name)?'excluded-row':''" @click.stop="onCellClick($event,'l3',item.name)"><td class="p-2 font-medium">{{item.name}}</td><td v-for="m in tblMonths" class="p-2 text-center font-mono text-slate-600 dark:text-slate-400">{{item.months[m]||'-'}}</td></tr></template>
+                    <template v-else><tr v-for="item in tblL3Searched" class="hover:bg-brand-50/50 cursor-pointer transition" :class="excludedL3.includes(item.name)?'excluded-row':''" @click.stop="onCellClick($event,'l3',item.name)"><td class="p-2 font-medium">{{item.name}}</td><td class="p-2 text-right font-mono font-bold">{{item.count}}</td><td class="p-2 text-right text-emerald-600 font-medium">{{tblPct(item.count,tblL3Sum)}}%</td></tr></template>
+                </tbody></table></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- REVIEWS VIEW -->
+    <div v-if="filters.viewType==='Normal'" class="anim-fade" style="height:calc(100vh - 270px);min-height:400px">
+        <div v-if="filteredData.length>0" class="h-full bg-white dark:bg-surface-900 rounded-xl border flex flex-col overflow-hidden">
+            <div class="flex-1 overflow-auto custom-scroll"><table class="w-full text-left text-sm border-collapse"><thead class="bg-slate-50/95 dark:bg-surface-950/95 backdrop-blur sticky top-0 z-10 border-b text-[10px] text-slate-500 uppercase font-bold tracking-wider"><tr><th class="p-3 w-14 text-center border-r">Rtg</th><th class="p-3 w-[35%] border-r">Customer Review</th><th class="p-3 border-r">Month</th><th class="p-3 border-r">Order Type</th><th class="p-3 border-r">Issue Breakdown</th><th class="p-3 border-r">Meta Data</th><th class="p-3 text-right">Source</th></tr></thead>
+            <tbody class="divide-y"><tr v-for="r in paginatedReviews" class="hover:bg-brand-50/30 transition" @mouseenter="onRowEnter($event,r)" @mousemove="onRowMove($event,r)" @mouseleave="onRowLeave"><td class="p-3 align-top border-r"><div :class="getRateColor(r.rating)" class="w-7 h-7 mx-auto rounded-md flex items-center justify-center text-white font-bold text-xs">{{r.rating}}</div></td><td class="p-3 align-top border-r"><p class="line-clamp-2 hover:line-clamp-none text-[13px] leading-relaxed transition-all">{{r.text}}</p></td><td class="p-3 align-top text-slate-500 text-xs border-r">{{r.month}}</td><td class="p-3 align-top border-r"><span class="px-2 py-0.5 rounded border text-[9px] font-bold uppercase" :class="r.type.toUpperCase().includes('SPOT')?'bg-purple-50 text-purple-700 border-purple-200':'bg-blue-50 text-blue-700 border-blue-200'">{{r.type}}</span></td><td class="p-3 align-top border-r"><div class="font-bold text-xs">{{r.l1}}</div><div v-if="r.l2" class="text-[11px] text-brand-500 mt-0.5">&raquo; {{r.l2}}</div><div v-if="r.l3" class="text-[10px] text-slate-500 pl-2">&raquo; {{r.l3}}</div></td><td class="p-3 align-top text-xs text-slate-500 space-y-0.5 border-r"><div v-if="r.city" class="flex gap-1"><span class="material-icons-round text-[11px]">location_on</span>{{r.city}}</div><div v-if="r.vehicle" class="flex gap-1"><span class="material-icons-round text-[11px]">directions_car</span>{{r.vehicle}}</div></td><td class="p-3 align-top text-right"><div class="font-bold text-xs">{{r.source}}</div><div class="text-[9px] text-slate-400 uppercase">{{r.country}}</div></td></tr></tbody></table></div>
+            <div v-if="totalPages>1" class="p-2 border-t flex justify-center items-center gap-1 bg-slate-50 dark:bg-surface-950"><button @click="reviewPage=Math.max(1,reviewPage-1)" :disabled="reviewPage===1" class="px-2 py-1 rounded text-xs font-bold text-slate-500 disabled:opacity-30">&laquo;</button><button v-for="pg in visiblePages" :key="pg" @click="reviewPage=pg" class="w-7 h-7 rounded text-xs font-bold transition" :class="pg===reviewPage?'bg-brand-600 text-white':'text-slate-600 hover:bg-slate-200'">{{pg}}</button><button @click="reviewPage=Math.min(totalPages,reviewPage+1)" :disabled="reviewPage===totalPages" class="px-2 py-1 rounded text-xs font-bold text-slate-500 disabled:opacity-30">&raquo;</button></div>
+        </div>
+        <div v-else class="h-full flex flex-col items-center justify-center text-slate-400"><span class="material-icons-round text-4xl mb-2">search_off</span><p class="text-sm">No reviews match filters</p></div>
+    </div>
+</div>
+
+<!-- PREFERENCE -->
+<div v-if="currentPage==='Preference'" class="max-w-3xl mx-auto py-6 anim-slide">
+    <div class="bg-white dark:bg-surface-900 p-6 rounded-2xl border">
+        <h2 class="text-xl font-bold dark:text-white mb-1">Preferences</h2><p class="text-sm text-slate-500 mb-6">Customize your dashboard experience.</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Filter Panel Position</label><select v-model="preferences.filterPosition" class="select-modern w-full border rounded-xl p-2.5 text-sm dark:bg-surface-950 dark:border-slate-700 outline-none"><option>Left</option><option>Right</option></select></div>
+            <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Theme</label><select v-model="preferences.theme" @change="applyThemePref" class="select-modern w-full border rounded-xl p-2.5 text-sm dark:bg-surface-950 dark:border-slate-700 outline-none"><option>White</option><option>Dark</option></select></div>
+            <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Default Trend Metric</label><select v-model="preferences.trendMetric" class="select-modern w-full border rounded-xl p-2.5 text-sm dark:bg-surface-950 dark:border-slate-700 outline-none"><option v-for="opt in trendMetricOptions" :value="opt.label">{{opt.label}}</option></select></div>
+            <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Default Result By</label><select v-model="preferences.resultBy" class="select-modern w-full border rounded-xl p-2.5 text-sm dark:bg-surface-950 dark:border-slate-700 outline-none"><option>Count Only</option><option>Count + Percentage</option><option>Percentage Only</option></select></div>
+            <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Percentage Decimal</label><select v-model="preferences.percentageDecimal" class="select-modern w-full border rounded-xl p-2.5 text-sm dark:bg-surface-950 dark:border-slate-700 outline-none"><option>0%</option><option>0.0%</option><option>0.00%</option></select></div>
+            <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Default Perspective</label><select v-model="preferences.perspective" class="select-modern w-full border rounded-xl p-2.5 text-sm dark:bg-surface-950 dark:border-slate-700 outline-none"><option>Reviews</option><option>Detail Analysis</option><option>Monthly Trends</option><option>Custom Monthly Trends</option></select></div>
+            <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Default Filter View</label><select v-model="preferences.filterView" class="select-modern w-full border rounded-xl p-2.5 text-sm dark:bg-surface-950 dark:border-slate-700 outline-none"><option>Basic</option><option>Advance</option></select></div>
+            <div><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Font Size</label><select v-model="preferences.fontSize" @change="applyFont" class="select-modern w-full border rounded-xl p-2.5 text-sm dark:bg-surface-950 dark:border-slate-700 outline-none"><option>12px</option><option>13px</option><option>14px</option><option>15px</option><option>16px</option></select></div>
+            <div class="md:col-span-2"><label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Font Style</label><select v-model="preferences.fontStyle" @change="applyFont" class="select-modern w-full border rounded-xl p-2.5 text-sm dark:bg-surface-950 dark:border-slate-700 outline-none"><option>DM Sans</option><option>Plus Jakarta Sans</option><option>Outfit</option><option>Lexend</option><option>Nunito</option><option>Poppins</option><option>Rubik</option><option>Source Sans 3</option><option>Work Sans</option><option>Space Mono</option></select></div>
+        </div>
+        <button @click="savePrefs" class="w-full mt-6 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold text-sm shadow-md transition active:scale-[.98]">Save Preferences</button>
+    </div>
+</div>
+
+<!-- GUIDE -->
+<div v-if="currentPage==='Guide'" class="max-w-4xl mx-auto py-6 anim-slide"><div class="bg-white dark:bg-surface-900 p-8 rounded-2xl border"><div class="flex justify-between items-start mb-8 border-b pb-6"><div><h2 class="text-2xl font-bold dark:text-white mb-2">User Guide</h2><p class="text-slate-500 text-sm">Navigate and analyze the App Review Dashboard.</p></div><button @click="startWalkthrough" class="bg-brand-600 text-white px-5 py-2.5 rounded-lg font-bold hover:bg-brand-700 shadow-md transition flex items-center gap-2 text-sm"><span class="material-icons-round text-lg">play_circle</span>Walkthrough</button></div>
+    <div class="space-y-5 text-sm leading-relaxed"><section><h3 class="text-lg font-bold text-brand-600 mb-2">1. Perspectives</h3><p>4 views: Reviews, Detail Analysis (count tables), Monthly Trends (month-on-month), Custom Monthly Trends (by metric).</p></section><section><h3 class="text-lg font-bold text-brand-600 mb-2">2. Table Features</h3><p>Each table has: Search, Filter (add/remove items), Copy to clipboard, Export to Sheet. Click cells for Select/View Reviews.</p></section><section><h3 class="text-lg font-bold text-brand-600 mb-2">3. Advance Filters</h3><p>Collapse section in sidebar with L1, L2, L3, Vehicle, Competitor, City for deep filtering.</p></section><section><h3 class="text-lg font-bold text-brand-600 mb-2">4. Presets</h3><p>Save filter combinations. Save button appears when filters change from loaded preset.</p></section></div></div></div>
+
+<!-- VALIDATION -->
+<div v-if="currentPage==='Validation'" class="max-w-6xl mx-auto space-y-4 py-6 anim-slide"><div class="bg-white dark:bg-surface-900 p-6 rounded-2xl border"><div class="flex justify-between items-center mb-6"><h2 class="text-xl font-bold dark:text-white">DataSource Management</h2><button @click="addSource" class="bg-brand-50 text-brand-700 px-4 py-1.5 rounded-lg text-xs font-bold border border-brand-200 hover:bg-brand-100 transition">+ Add Sheet</button></div>
+    <div v-for="(cfg,idx) in configList" :key="cfg.id" class="mb-4 bg-slate-50 dark:bg-surface-950 rounded-xl p-5 border relative"><button v-if="configList.length>1" @click="configList.splice(idx,1)" class="absolute top-3 right-3 text-red-500 text-[10px] font-bold bg-white px-3 py-1 rounded border hover:bg-red-50 transition">REMOVE</button><div class="grid grid-cols-2 gap-4 mb-4"><div><label class="text-[10px] font-bold text-slate-500 uppercase block mb-1">Spreadsheet ID</label><input v-model="cfg.sheetId" class="w-full border rounded-lg p-2 text-xs font-mono dark:bg-surface-900 dark:border-slate-700 outline-none"></div><div><label class="text-[10px] font-bold text-slate-500 uppercase block mb-1">Tab Name</label><input v-model="cfg.tabName" class="w-full border rounded-lg p-2 text-xs dark:bg-surface-900 dark:border-slate-700 outline-none"></div></div><div class="p-4 bg-white dark:bg-surface-900 rounded-lg border"><label class="block text-[9px] uppercase font-bold text-slate-500 mb-3">Column Mapping</label><div class="grid grid-cols-4 md:grid-cols-7 gap-2"><div v-for="cm in configOrderMapping" class="flex flex-col text-center"><span class="text-[8px] font-bold text-slate-500 mb-0.5 uppercase truncate">{{cm.label}}</span><input v-model="cfg.cols[cm.key]" class="text-center font-bold text-brand-600 p-1.5 rounded border dark:bg-surface-950 uppercase text-xs outline-none"></div></div></div></div>
+    <button @click="saveAll" class="w-full py-3 bg-slate-900 dark:bg-brand-600 text-white rounded-xl font-bold shadow-md hover:bg-slate-800 transition">Save & Reload</button></div></div>
+
+<!-- ACCESS -->
+<div v-if="currentPage==='Access'" class="max-w-4xl mx-auto py-6 anim-slide"><div class="bg-white dark:bg-surface-900 p-6 rounded-2xl border"><h2 class="text-xl font-bold mb-6 dark:text-white">Access Management</h2><div v-if="user.role==='Admin'" class="flex gap-3 p-3 bg-slate-50 dark:bg-surface-950 rounded-xl mb-6 border"><input v-model="newUser.email" placeholder="email@theporter.in" class="flex-1 border p-2 rounded-lg text-xs outline-none dark:bg-surface-900 dark:border-slate-700"><select v-model="newUser.role" class="border p-2 rounded-lg text-xs outline-none dark:bg-surface-900 dark:border-slate-700"><option>Updater</option><option>Admin</option></select><button @click="addUser" class="px-5 bg-brand-600 text-white rounded-lg font-bold text-xs hover:bg-brand-700 transition">Add</button></div><table class="w-full text-sm text-left"><thead class="text-[10px] uppercase font-bold text-slate-500 border-b"><th class="p-3">Email</th><th class="p-3">Role</th><th class="p-3">Timestamp</th><th class="p-3 text-right">Controls</th></thead><tbody class="divide-y"><tr v-for="u in accessList" class="hover:bg-slate-50 transition"><td class="p-3 font-medium">{{u.email}}</td><td class="p-3"><span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase" :class="u.role==='Admin'?'bg-purple-50 text-purple-700':'bg-emerald-50 text-emerald-700'">{{u.role}}</span></td><td class="p-3 text-slate-500 font-mono text-[10px]">{{formatDate(u.timestamp)}}</td><td class="p-3 text-right"><button @click="remUser(u.email)" v-if="user.role==='Admin'&&u.email!==user.email" class="text-slate-500 hover:text-red-600 font-bold text-[10px] uppercase">Revoke</button></td></tr></tbody></table></div></div>
+
+<!-- LOG -->
+<div v-if="currentPage==='Log'" class="max-w-5xl mx-auto py-6 anim-slide"><div class="bg-white dark:bg-surface-900 p-6 rounded-2xl border"><div class="flex justify-between items-center mb-6"><h2 class="text-xl font-bold dark:text-white">Error Logs</h2><div class="flex gap-3"><div class="flex items-center gap-1.5"><label class="text-[10px] font-bold text-slate-500 uppercase">Start</label><input type="date" v-model="logFilters.start" class="border rounded-lg p-1.5 text-xs dark:bg-surface-950 dark:border-slate-700 outline-none"></div><div class="flex items-center gap-1.5"><label class="text-[10px] font-bold text-slate-500 uppercase">End</label><input type="date" v-model="logFilters.end" class="border rounded-lg p-1.5 text-xs dark:bg-surface-950 dark:border-slate-700 outline-none"></div></div></div><div class="overflow-x-auto border rounded-lg"><table class="w-full text-sm text-left"><thead class="text-[10px] uppercase font-bold text-slate-500 bg-slate-50 dark:bg-surface-950 border-b"><tr><th class="p-3">ID</th><th class="p-3">User</th><th class="p-3">Timestamp</th><th class="p-3">Message</th></tr></thead><tbody class="divide-y"><tr v-if="filteredLogs.length===0"><td colspan="4" class="p-6 text-center text-slate-400 text-sm">No logs.</td></tr><tr v-for="log in filteredLogs" class="hover:bg-slate-50 transition"><td class="p-3 font-mono text-[10px] text-slate-400">{{log.id}}</td><td class="p-3 text-xs font-medium">{{log.user}}</td><td class="p-3 font-mono text-[10px] text-slate-500 whitespace-nowrap">{{formatDate(log.timestamp)}}</td><td class="p-3 text-rose-500 text-xs break-all">{{log.message}}</td></tr></tbody></table></div></div></div>
+
+<!-- USERS -->
+<div v-if="currentPage==='Users'" class="max-w-6xl mx-auto py-6 anim-slide"><div class="bg-white dark:bg-surface-900 p-6 rounded-2xl border"><div class="flex justify-between items-center mb-6"><h2 class="text-xl font-bold dark:text-white">User Base</h2><p class="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-lg border">{{userList.length}} Users</p></div><div class="overflow-x-auto border rounded-lg"><table class="w-full text-sm text-left"><thead class="text-[10px] uppercase font-bold text-slate-500 bg-slate-50 dark:bg-surface-950 border-b"><tr><th class="p-3">Name</th><th class="p-3">Email</th><th class="p-3">Role</th><th class="p-3">First</th><th class="p-3">Last</th><th class="p-3 text-center">Sessions</th><th class="p-3 text-center">Walk</th></tr></thead><tbody class="divide-y"><tr v-for="usr in userList" class="hover:bg-slate-50 transition"><td class="p-3 font-bold text-xs">{{usr.name||usr.email.split('@')[0]}}</td><td class="p-3 text-xs text-slate-500">{{usr.email}}</td><td class="p-3"><span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase" :class="usr.role==='Admin'?'bg-purple-50 text-purple-700':'bg-emerald-50 text-emerald-700'">{{usr.role}}</span></td><td class="p-3 font-mono text-[10px] text-slate-500">{{formatDate(usr.firstAccess)}}</td><td class="p-3 font-mono text-[10px] text-brand-600">{{formatDate(usr.lastAccess)}}</td><td class="p-3 text-center font-bold">{{usr.totalSessions}}</td><td class="p-3 text-center"><span v-if="usr.walk==='Completed'" class="material-icons-round text-emerald-500">check_circle</span><span v-else class="material-icons-round text-slate-300">pending</span></td></tr></tbody></table></div></div></div>
+
+</div></main></div>
+</template></div>
+
+<script>
+const {createApp,ref,reactive,computed,onMounted,watch}=Vue;
+createApp({setup(){
+    const appState=ref('login'),loginLoading=ref(false),loginError=ref(''),isDark=ref(false),loading=ref(false);
+    const user=reactive({email:'',role:'Viewer',name:'',photoUrl:'',walkthrough:''});
+    const stats=ref({}),dataRows=ref([]),configList=ref([]),accessList=ref([]),logList=ref([]),userList=ref([]);
+    const currentPage=ref('Result'),showSidebar=ref(true),globalError=ref(''),profileMenu=ref(false),advFilterOpen=ref(false);
+    const reviewPage=ref(1),ROWS_PER_PAGE=300,zoomLevel=ref(1);
+    const presetList=ref([]),presetDD=ref(false),activePresetName=ref('New View (Reset)'),activePresetId=ref(null);
+    const presetModal=reactive({show:false,isEdit:false,id:'',name:'',visibility:'Private',notes:''});
+    const presetPopup=reactive({show:false,x:0,y:0,data:null});
+    const preferences=reactive({filterPosition:'Left',theme:'White',trendMetric:'Status',resultBy:'Count + Percentage',percentageDecimal:'0.0%',perspective:'Detail Analysis',filterView:'Basic',fontSize:'14px',fontStyle:'DM Sans'});
+    const filters=reactive({viewType:'Detail',trendMetric:'status',startMonth:'',endMonth:'',source:[],status:[],type:[],l1:[],l2:[],l3:[],vehicle:[],comp:[],city:[],country:[],minRating:'',maxRating:''});
+    const orderedKeys=['source','status','type','l1','l2','l3','vehicle','comp','city','country'];
+    const basicFilterKeys=['source','status','type','country'];
+    const advFilterKeys=['l1','l2','l3','vehicle','comp','city'];
+    const trendMetricOptions=[{label:'Rating',value:'rating'},{label:'Source',value:'source'},{label:'Status',value:'status'},{label:'Order Type',value:'type'},{label:'L1 Category',value:'l1'},{label:'L2 Reason',value:'l2'},{label:'Vehicle',value:'vehicle'},{label:'Competitor',value:'comp'},{label:'City',value:'city'},{label:'Country',value:'country'}];
+    const configOrderMapping=[{key:'star',label:'Star Rating'},{key:'status',label:'Status'},{key:'type',label:'Order Type'},{key:'text',label:'Review Text'},{key:'l1',label:'L1'},{key:'l2',label:'L2'},{key:'l3',label:'L3'},{key:'veh',label:'Vehicle'},{key:'comp',label:'Competitor'},{key:'city',label:'City'},{key:'month',label:'Month'},{key:'country',label:'Country'},{key:'source',label:'Source'}];
+    const multiSelect=reactive({show:false,x:0,y:0,key:'',options:[],selected:[],search:''});
+    const hoverPopup=reactive({show:false,x:0,y:0,data:null});
+    const cellPopup=reactive({show:false,x:0,y:0,level:'',value:''});
+    const reviewModal=reactive({show:false,title:'',reviews:[]});
+    const modal=reactive({show:false,title:'',message:'',action:null});
+    const basicSelection=reactive({l1:'',l2:''});
+    const search=reactive({l1:'',l2:'',l3:''});
+    const excludedL1=ref([]),excludedL2=ref([]),excludedL3=ref([]);
+    const tblFilter=reactive({show:false,x:0,y:0,level:'',excluded:[],search:'',allOpts:[]});
+    const savedFilterSnap=ref('');
+    let hoverTimer=null,isHoveringRow=false,profileTimer=null;
+    const walk=reactive({isActive:false,step:0,steps:[
+        {id:'sidebar',title:'Data Filters',desc:'Filter reviews by month, source, status. Expand Advance Filters for L1/L2/L3 and more.'},
+        {id:'metrics',title:'Dashboard KPIs',desc:'Average Rating, Volume, Status breakdown, and Quick Summary update with your filters.'},
+        {id:'presets',title:'User Presets',desc:'Save filter combos. Save button appears when filters change. Click preset for Edit/Delete.'},
+        {id:'tables',title:'Three Tables',desc:'L1/L2/L3 tables with Search, Filter, Copy, Export. Click cells for Select or View Reviews. Switch Perspective for monthly views.'},
+        {id:'nav',title:'Navigation',desc:'Tabs depend on your role. Access Preferences via profile menu.'},
+    ]});
+    const todayStr=new Date().toISOString().split('T')[0];
+    const logFilters=reactive({start:todayStr,end:todayStr});
+    const newUser=reactive({email:'',role:'Updater'});
+
+    onMounted(()=>{document.getElementById('loader').classList.add('opacity-0','pointer-events-none');});
+
+    // LOGIN
+    function doLogin(){loginLoading.value=true;loginError.value='';google.script.run.withSuccessHandler(r=>{loginLoading.value=false;if(r.success){user.email=r.email;user.name=r.name;user.photoUrl=r.photoUrl;appState.value='loading';refreshData();}else loginError.value=r.error||'Failed.';}).withFailureHandler(e=>{loginLoading.value=false;loginError.value=e.message;}).getCurrentUserInfo();}
+    function doLogout(){closeProfile();appState.value='login';}
+
+    // DATA
+    function refreshData(){loading.value=true;globalError.value='';google.script.run.withSuccessHandler(onData).withFailureHandler(e=>{loading.value=false;appState.value='ready';globalError.value=e.message;}).fetchDashboardData();}
+    function onData(res){loading.value=false;appState.value='ready';if(!res.success){globalError.value=res.error;return;}
+        user.email=res.user.email;user.role=res.user.role;user.name=res.user.name||user.name;user.photoUrl=res.user.photoUrl||user.photoUrl;user.walkthrough=res.user.walkthrough;
+        dataRows.value=res.data||[];configList.value=res.configList||[];accessList.value=res.accessList||[];logList.value=res.logList||[];presetList.value=res.presetList||[];userList.value=res.userList||[];stats.value=res.stats||{};
+        if(res.preferences){Object.assign(preferences,res.preferences);if(!preferences.fontSize)preferences.fontSize='14px';if(!preferences.fontStyle)preferences.fontStyle='DM Sans';if(!preferences.filterView)preferences.filterView='Basic';advFilterOpen.value=preferences.filterView==='Advance';applyThemePref();applyFont();applyDefaults();}
+        if(configList.value.length===0&&res.user.isAdminOrUpdater)currentPage.value='Validation';
+        if(user.walkthrough!=='Completed'&&dataRows.value.length>0)startWalkthrough();
+        savedFilterSnap.value=JSON.stringify(filters);}
+
+    // PREFS
+    function applyThemePref(){isDark.value=preferences.theme==='Dark';isDark.value?document.documentElement.classList.add('dark'):document.documentElement.classList.remove('dark');}
+    function applyFont(){document.documentElement.style.setProperty('--font-main',preferences.fontStyle+',sans-serif');document.documentElement.style.setProperty('--font-size',preferences.fontSize||'14px');}
+    function applyDefaults(){const m={'Reviews':'Normal','Detail Analysis':'Detail','Monthly Trends':'CompMonth','Custom Monthly Trends':'CustomTrend'};filters.viewType=m[preferences.perspective]||'Detail';}
+    function toggleThemeTemp(){isDark.value=!isDark.value;isDark.value?document.documentElement.classList.add('dark'):document.documentElement.classList.remove('dark');closeProfile();}
+    function savePrefs(){loading.value=true;google.script.run.withSuccessHandler(r=>{loading.value=false;if(r.success){applyThemePref();applyFont();applyDefaults();}}).withFailureHandler(e=>{loading.value=false;globalError.value=e.message;}).savePreferences(JSON.parse(JSON.stringify(preferences)));}
+    function changeZoom(d){zoomLevel.value=Math.max(0.7,Math.min(1.3,zoomLevel.value+d));}
+    const prefDecimal=computed(()=>{const m={'0%':0,'0.0%':1,'0.00%':2};return m[preferences.percentageDecimal]??1;});
+    function tblPct(val,sum){if(!sum)return'0';return((val/sum)*100).toFixed(prefDecimal.value);}
+
+    // Profile with auto-close
+    function openProfile(){if(profileMenu.value){closeProfile();return;}profileMenu.value=true;clearTimeout(profileTimer);profileTimer=setTimeout(closeProfile,4000);}
+    function closeProfile(){profileMenu.value=false;clearTimeout(profileTimer);}
+
+    // COMPUTED
+    const isAdminOrUpdater=computed(()=>['Admin','Updater'].includes(user.role));
+    const sortedMonths=computed(()=>{const s=new Set(dataRows.value.map(d=>d.month).filter(Boolean));return Array.from(s).sort((a,b)=>parseD(a)-parseD(b));});
+    const filtersChanged=computed(()=>JSON.stringify(filters)!==savedFilterSnap.value);
+    const isMonthView=computed(()=>filters.viewType==='CompMonth'||filters.viewType==='CustomTrend');
+    const tblMonths=computed(()=>sortedMonths.value);
+
+    const filteredData=computed(()=>{
+        const sT=filters.startMonth?parseD(filters.startMonth):-Infinity,eT=filters.endMonth?parseD(filters.endMonth):Infinity;
+        return dataRows.value.filter(d=>{
+            if(filters.startMonth||filters.endMonth){const t=parseD(d.month);if(t<sT||t>eT)return false;}
+            if(filters.minRating&&d.rating<filters.minRating)return false;
+            if(filters.maxRating&&d.rating>filters.maxRating)return false;
+            for(const k of orderedKeys){const f=filters[k];if(f&&Array.isArray(f)&&f.length>0&&!f.includes(d[k]))return false;}
+            return true;});});
+    const avgRating=computed(()=>!filteredData.value.length?0:(filteredData.value.reduce((a,b)=>a+(b.rating||0),0)/filteredData.value.length).toFixed(1));
+    const statusCounts=computed(()=>{const t=filteredData.value.length||1;let n=0,u=0,p=0;filteredData.value.forEach(d=>{const s=(d.status||'').toLowerCase();if(s.includes('neg'))n++;else if(s.includes('neu'))u++;else if(s.includes('pos'))p++;});return{negative:n,negativePct:((n/t)*100).toFixed(1),neutral:u,neutralPct:((u/t)*100).toFixed(1),positive:p,positivePct:((p/t)*100).toFixed(1)};});
+    const topL1=computed(()=>{const m={};filteredData.value.forEach(d=>{if(d.l1)m[d.l1]=(m[d.l1]||0)+1;});return Object.entries(m).sort((a,b)=>b[1]-a[1])[0]?.[0]||'N/A';});
+    const topSource=computed(()=>{const m={};filteredData.value.forEach(d=>{if(d.source)m[d.source]=(m[d.source]||0)+1;});return Object.entries(m).sort((a,b)=>b[1]-a[1])[0]?.[0]||'N/A';});
+
+    // Pagination
+    const totalPages=computed(()=>Math.ceil(filteredData.value.length/ROWS_PER_PAGE));
+    const paginatedReviews=computed(()=>{const s=(reviewPage.value-1)*ROWS_PER_PAGE;return filteredData.value.slice(s,s+ROWS_PER_PAGE);});
+    const visiblePages=computed(()=>{const p=[],tp=totalPages.value,cp=reviewPage.value;for(let i=Math.max(1,cp-2);i<=Math.min(tp,cp+2);i++)p.push(i);return p;});
+    watch(()=>filters,()=>{reviewPage.value=1;},{deep:true});
+
+    // TABLE DATA (with month support)
+    function buildTableData(field,parentFilter){
+        let data=filteredData.value;
+        if(field==='l2'&&basicSelection.l1)data=data.filter(d=>d.l1===basicSelection.l1);
+        if(field==='l3'){if(basicSelection.l1)data=data.filter(d=>d.l1===basicSelection.l1);if(basicSelection.l2)data=data.filter(d=>d.l2===basicSelection.l2);}
+        const excluded=field==='l1'?excludedL1.value:field==='l2'?excludedL2.value:excludedL3.value;
+        const m={};data.forEach(d=>{const v=d[field];if(!v||excluded.includes(v))return;if(!m[v])m[v]={name:v,count:0,months:{}};m[v].count++;const mo=d.month;if(mo)m[v].months[mo]=(m[v].months[mo]||0)+1;});
+        return Object.values(m).sort((a,b)=>b.count-a.count);
+    }
+    const tblL1Filtered=computed(()=>buildTableData('l1'));
+    const tblL2Filtered=computed(()=>buildTableData('l2'));
+    const tblL3Filtered=computed(()=>buildTableData('l3'));
+    const tblL1Searched=computed(()=>{const s=search.l1.toLowerCase();return s?tblL1Filtered.value.filter(i=>i.name.toLowerCase().includes(s)):tblL1Filtered.value;});
+    const tblL2Searched=computed(()=>{const s=search.l2.toLowerCase();return s?tblL2Filtered.value.filter(i=>i.name.toLowerCase().includes(s)):tblL2Filtered.value;});
+    const tblL3Searched=computed(()=>{const s=search.l3.toLowerCase();return s?tblL3Filtered.value.filter(i=>i.name.toLowerCase().includes(s)):tblL3Filtered.value;});
+    const tblL1Sum=computed(()=>tblL1Filtered.value.reduce((a,b)=>a+b.count,0));
+    const tblL2Sum=computed(()=>tblL2Filtered.value.reduce((a,b)=>a+b.count,0));
+    const tblL3Sum=computed(()=>tblL3Filtered.value.reduce((a,b)=>a+b.count,0));
+
+    const filteredLogs=computed(()=>{const s=logFilters.start?new Date(logFilters.start).setHours(0,0,0,0):-Infinity,e=logFilters.end?new Date(logFilters.end).setHours(23,59,59,999):Infinity;return logList.value.filter(l=>{const t=new Date(l.timestamp).getTime();return t>=s&&t<=e;}).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));});
+    const msFilteredOpts=computed(()=>{if(!multiSelect.search)return multiSelect.options;const s=multiSelect.search.toLowerCase();return multiSelect.options.filter(o=>o.toLowerCase().includes(s));});
+    const tblFilterOpts=computed(()=>{const s=tblFilter.search.toLowerCase();return s?tblFilter.allOpts.filter(o=>o.toLowerCase().includes(s)):tblFilter.allOpts;});
+
+    // DYNAMIC OPTS
+    const getDynamicOpts=(fk)=>{const sT=filters.startMonth?parseD(filters.startMonth):-Infinity,eT=filters.endMonth?parseD(filters.endMonth):Infinity;const ds=dataRows.value.filter(d=>{if(filters.startMonth||filters.endMonth){const t=parseD(d.month);if(t<sT||t>eT)return false;}for(const k of orderedKeys){if(k===fk)continue;const f=filters[k];if(f&&Array.isArray(f)&&f.length>0&&!f.includes(d[k]))return false;}return true;});return[...new Set(ds.map(d=>d[fk]).filter(Boolean))].sort();};
+
+    // ACTIONS
+    function resetFilters(){filters.startMonth='';filters.endMonth='';filters.minRating='';filters.maxRating='';orderedKeys.forEach(k=>filters[k]=[]);basicSelection.l1='';basicSelection.l2='';excludedL1.value=[];excludedL2.value=[];excludedL3.value=[];search.l1='';search.l2='';search.l3='';}
+    function openMS(k,evt){const r=evt.currentTarget.getBoundingClientRect();multiSelect.key=k;multiSelect.options=getDynamicOpts(k);multiSelect.selected=Array.isArray(filters[k])?[...filters[k]]:[];multiSelect.search='';multiSelect.x=Math.min(r.left,window.innerWidth-270);multiSelect.y=Math.min(r.bottom+4,window.innerHeight-300);multiSelect.show=true;}
+    function toggleMS(opt){const i=multiSelect.selected.indexOf(opt);if(i>-1)multiSelect.selected.splice(i,1);else multiSelect.selected.push(opt);}
+    function applyMS(){filters[multiSelect.key]=[...multiSelect.selected];multiSelect.show=false;}
+    function removeFilterVal(k,v){if(Array.isArray(filters[k]))filters[k]=filters[k].filter(x=>x!==v);}
+
+    // Table filter
+    function openTblFilter(level,evt){const rect=evt.currentTarget.getBoundingClientRect();const allItems=level==='l1'?[...new Set(filteredData.value.map(d=>d.l1).filter(Boolean))]:level==='l2'?[...new Set(filteredData.value.map(d=>d.l2).filter(Boolean))]:[...new Set(filteredData.value.map(d=>d.l3).filter(Boolean))];
+        tblFilter.level=level;tblFilter.allOpts=allItems.sort();tblFilter.excluded=level==='l1'?[...excludedL1.value]:level==='l2'?[...excludedL2.value]:[...excludedL3.value];tblFilter.search='';tblFilter.x=Math.min(rect.left,window.innerWidth-270);tblFilter.y=Math.min(rect.bottom+4,window.innerHeight-300);tblFilter.show=true;}
+    function toggleTblFilter(opt){const i=tblFilter.excluded.indexOf(opt);if(i>-1)tblFilter.excluded.splice(i,1);else tblFilter.excluded.push(opt);if(tblFilter.level==='l1')excludedL1.value=[...tblFilter.excluded];else if(tblFilter.level==='l2')excludedL2.value=[...tblFilter.excluded];else excludedL3.value=[...tblFilter.excluded];}
+
+    // Cell click
+    function onCellClick(evt,level,value){cellPopup.x=Math.min(evt.clientX,window.innerWidth-180);cellPopup.y=Math.min(evt.clientY,window.innerHeight-120);cellPopup.level=level;cellPopup.value=value;cellPopup.show=true;}
+    function cellPopupSelect(){cellPopup.show=false;if(cellPopup.level==='l1'){basicSelection.l1=basicSelection.l1===cellPopup.value?'':cellPopup.value;basicSelection.l2='';}else if(cellPopup.level==='l2')basicSelection.l2=basicSelection.l2===cellPopup.value?'':cellPopup.value;}
+    function cellPopupViewReview(){cellPopup.show=false;let data=filteredData.value;if(cellPopup.level==='l1')data=data.filter(d=>d.l1===cellPopup.value);else if(cellPopup.level==='l2'){if(basicSelection.l1)data=data.filter(d=>d.l1===basicSelection.l1);data=data.filter(d=>d.l2===cellPopup.value);}else if(cellPopup.level==='l3'){if(basicSelection.l1)data=data.filter(d=>d.l1===basicSelection.l1);if(basicSelection.l2)data=data.filter(d=>d.l2===basicSelection.l2);data=data.filter(d=>d.l3===cellPopup.value);}reviewModal.title=cellPopup.value;reviewModal.reviews=data;reviewModal.show=true;}
+
+    // Copy & Export
+    function copyTable(level){const items=level==='l1'?tblL1Searched.value:level==='l2'?tblL2Searched.value:tblL3Searched.value;const sum=level==='l1'?tblL1Sum.value:level==='l2'?tblL2Sum.value:tblL3Sum.value;
+        let txt='Name\tCount\t%\n';items.forEach(i=>{txt+=i.name+'\t'+i.count+'\t'+tblPct(i.count,sum)+'%\n';});
+        if(navigator.clipboard)navigator.clipboard.writeText(txt).then(()=>alert('Copied!')).catch(()=>alert('Copy failed'));}
+    function exportSheet(level){const items=level==='l1'?tblL1Searched.value:level==='l2'?tblL2Searched.value:tblL3Searched.value;const sum=level==='l1'?tblL1Sum.value:level==='l2'?tblL2Sum.value:tblL3Sum.value;
+        let csv='Name,Count,%\n';items.forEach(i=>{csv+='"'+i.name+'",'+i.count+','+tblPct(i.count,sum)+'%\n';});
+        const blob=new Blob([csv],{type:'text/csv'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='export_'+level+'.csv';a.click();URL.revokeObjectURL(url);}
+
+    // Row hover
+    function startHoverTimer(r,e){clearTimeout(hoverTimer);hoverTimer=setTimeout(()=>{if(!isHoveringRow)return;hoverPopup.x=Math.min(e.clientX+15,window.innerWidth-400);hoverPopup.y=Math.min(e.clientY+15,window.innerHeight-260);hoverPopup.data=r;hoverPopup.show=true;},2500);}
+    function onRowEnter(e,r){isHoveringRow=true;startHoverTimer(r,e);}
+    function onRowMove(e,r){if(hoverPopup.show){hoverPopup.show=false;startHoverTimer(r,e);}}
+    function onRowLeave(){isHoveringRow=false;clearTimeout(hoverTimer);hoverPopup.show=false;}
+
+    // Presets
+    function onPresetClick(evt,p){loadPreset(p);presetPopup.x=Math.min(evt.clientX+10,window.innerWidth-340);presetPopup.y=Math.min(evt.clientY-30,window.innerHeight-160);presetPopup.data=p;presetPopup.show=true;}
+    function openCreatePreset(){presetDD.value=false;presetModal.isEdit=false;presetModal.id='';presetModal.name='';presetModal.visibility='Private';presetModal.notes='';presetModal.show=true;}
+    function editPreset(p){presetPopup.show=false;presetDD.value=false;presetModal.isEdit=true;presetModal.id=p.id;presetModal.name=p.name;presetModal.visibility=p.visibility;presetModal.notes=p.notes;presetModal.show=true;}
+    function executeSavePreset(){const pl={id:presetModal.id,name:presetModal.name,visibility:presetModal.visibility,notes:presetModal.notes,theme:isDark.value?'dark':'light',filters:JSON.parse(JSON.stringify(filters))};presetModal.show=false;loading.value=true;google.script.run.withSuccessHandler(r=>{if(r.success)refreshData();}).managePreset('save',pl);}
+    function quickSavePreset(){if(!activePresetId.value)return;loading.value=true;google.script.run.withSuccessHandler(r=>{if(r.success){savedFilterSnap.value=JSON.stringify(filters);refreshData();}}).managePreset('save',{id:activePresetId.value,name:activePresetName.value,visibility:'Private',notes:'',theme:isDark.value?'dark':'light',filters:JSON.parse(JSON.stringify(filters))});}
+    function delPreset(p){presetPopup.show=false;showConfirm('Delete','Delete "'+p.name+'"?',()=>{loading.value=true;google.script.run.withSuccessHandler(r=>{if(r.success){if(activePresetName.value===p.name)loadPreset(null);refreshData();}}).managePreset('delete',{id:p.id});});}
+    function loadPreset(p){presetDD.value=false;if(!p){activePresetName.value='New View (Reset)';activePresetId.value=null;resetFilters();savedFilterSnap.value=JSON.stringify(filters);return;}activePresetName.value=p.name;activePresetId.value=p.id;const pf=p.filters;if(pf)Object.keys(pf).forEach(k=>{if(k in filters)filters[k]=pf[k];});savedFilterSnap.value=JSON.stringify(filters);}
+
+    // Walk
+    function startWalkthrough(){currentPage.value='Result';walk.step=0;walk.isActive=true;}
+    function endWalkthrough(){walk.isActive=false;if(user.walkthrough!=='Completed'){google.script.run.completeWalkthrough();user.walkthrough='Completed';}}
+    function showConfirm(t,m,fn){modal.title=t;modal.message=m;modal.action=fn;modal.show=true;}
+    function executeModal(){if(modal.action)modal.action();modal.show=false;}
+
+    // Admin
+    function addSource(){configList.value.push({id:'',sheetId:'',tabName:'',timestamp:'',cols:{star:'',status:'',type:'',text:'',l1:'',l2:'',l3:'',veh:'',comp:'',city:'',month:'',country:'',source:''}});}
+    function saveAll(){showConfirm('Save','Save all and reload?',()=>{loading.value=true;google.script.run.withSuccessHandler(r=>{if(r.success)refreshData();}).withFailureHandler(e=>{loading.value=false;globalError.value=e.message;}).saveConfigs(JSON.parse(JSON.stringify(configList.value)));});}
+    function addUser(){google.script.run.withSuccessHandler(r=>{if(r.success)accessList.value=r.list;}).withFailureHandler(e=>{globalError.value=e.message;}).manageAccess('add',{email:newUser.email,role:newUser.role});}
+    function remUser(e){showConfirm('Revoke','Remove '+e+'?',()=>{google.script.run.withSuccessHandler(r=>{if(r.success)accessList.value=r.list;}).manageAccess('delete',{email:e});});}
+
+    // Global click handler
+    function globalClick(evt){if(profileMenu.value&&!evt.target.closest('.relative'))closeProfile();if(multiSelect.show)multiSelect.show=false;if(cellPopup.show)cellPopup.show=false;if(presetPopup.show)presetPopup.show=false;if(tblFilter.show&&!evt.target.closest('[data-tbl-filter]'))tblFilter.show=false;}
+
+    // Helpers
+    function parseD(s){return s?new Date(s.replace('/',' 1, ')).getTime():0;}
+    const formatLabel=(k)=>{if(k==='type')return'Order Type';if(k==='comp')return'Competitor';if(k==='l1')return'L1 Category';if(k==='l2')return'L2 Reason';if(k==='l3')return'L3 Root Cause';return k.replace(/\b\w/g,c=>c.toUpperCase());};
+    const getRateColor=(r)=>r>=4?'bg-emerald-500':(r==3?'bg-amber-400':'bg-rose-500');
+    const formatDate=(d)=>{if(!d)return'-';const dt=new Date(d);if(isNaN(dt.getTime()))return d;const pad=n=>n.toString().padStart(2,'0');let h=dt.getHours();const ap=h>=12?'PM':'AM';h=h%12||12;return pad(dt.getDate())+'/'+pad(dt.getMonth()+1)+'/'+dt.getFullYear().toString().slice(-2)+' '+pad(h)+':'+pad(dt.getMinutes())+' '+ap;};
+
+    return{appState,loginLoading,loginError,doLogin,doLogout,isDark,user,loading,stats,currentPage,showSidebar,globalError,profileMenu,openProfile,closeProfile,advFilterOpen,zoomLevel,changeZoom,
+        reviewPage,totalPages,paginatedReviews,visiblePages,
+        preferences,prefDecimal,tblPct,savePrefs,applyThemePref,applyFont,toggleThemeTemp,
+        filteredData,avgRating,statusCounts,topL1,topSource,
+        configList,configOrderMapping,isAdminOrUpdater,sortedMonths,basicFilterKeys,advFilterKeys,
+        filters,orderedKeys,formatLabel,getDynamicOpts,getRateColor,formatDate,trendMetricOptions,
+        multiSelect,msFilteredOpts,openMS,toggleMS,applyMS,removeFilterVal,
+        search,basicSelection,excludedL1,excludedL2,excludedL3,
+        tblL1Filtered,tblL2Filtered,tblL3Filtered,tblL1Searched,tblL2Searched,tblL3Searched,tblL1Sum,tblL2Sum,tblL3Sum,
+        isMonthView,tblMonths,
+        tblFilter,tblFilterOpts,openTblFilter,toggleTblFilter,
+        onCellClick,cellPopup,cellPopupSelect,cellPopupViewReview,reviewModal,
+        copyTable,exportSheet,
+        refreshData,resetFilters,saveAll,addSource,addUser,remUser,newUser,
+        accessList,logList,userList,logFilters,filteredLogs,modal,executeModal,
+        hoverPopup,onRowEnter,onRowMove,onRowLeave,
+        presetList,presetDD,activePresetName,activePresetId,filtersChanged,presetModal,presetPopup,
+        loadPreset,openCreatePreset,editPreset,delPreset,executeSavePreset,quickSavePreset,onPresetClick,
+        walk,startWalkthrough,endWalkthrough,globalClick};
+}}).mount('#app');
+</script>
+</body>
+</html>
